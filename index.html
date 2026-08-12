@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MINEXUS · Sales Enablement & Growth Dashboard</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0284c7',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+              accent: '#06b6d4',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar and glassmorphism styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="h-full font-sans antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-out bg-brand-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-xl"></i>
+    <span id="toast-message" class="font-medium text-sm">Copiado al portapapeles</span>
+  </div>
+
+  <!-- Header / Navigation Banner -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Title -->
+        <div class="flex items-center space-x-3">
+          <div class="bg-gradient-to-tr from-brand-600 to-cyan-400 p-2.5 rounded-xl shadow-lg shadow-brand-600/20">
+            <i class="fa-solid fa-cubes-stacked text-slate-950 text-xl font-black"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-extrabold text-xl tracking-tight text-white">MINEXUS</span>
+              <span class="text-xs font-semibold uppercase tracking-wider bg-brand-500/20 text-brand-400 px-2 py-0.5 rounded border border-brand-500/30">Sales Enablement</span>
+            </div>
+            <p class="text-xs text-slate-400">Dashboard Interactivo de Traspaso & Estrategia de Ventas</p>
+          </div>
+        </div>
+
+        <!-- Global Search Bar -->
+        <div class="hidden md:flex flex-1 max-w-md mx-8 relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input type="text" id="globalSearch" placeholder="Buscar preocupaciones, módulos, ganchos o roles..." 
+                 class="w-full bg-slate-800/80 border border-slate-700/70 rounded-xl pl-10 pr-4 py-1.5 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all">
+        </div>
+
+        <!-- Main Nav Buttons -->
+        <nav class="flex items-center space-x-1 sm:space-x-2">
+          <button onclick="switchTab('icp')" id="tab-icp" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-2 transition-all bg-brand-600 text-white shadow-lg shadow-brand-600/20">
+            <i class="fa-solid fa-bullseye text-sm"></i>
+            <span class="hidden sm:inline">1. ICP & Matriz KDM</span>
+            <span class="sm:hidden">1. ICP</span>
+          </button>
+
+          <button onclick="switchTab('content')" id="tab-content" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-2 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+            <i class="fa-solid fa-calendar-days text-sm"></i>
+            <span class="hidden sm:inline">2. Plan de Contenidos</span>
+            <span class="sm:hidden">2. Contenidos</span>
+          </button>
+
+          <button onclick="switchTab('handover')" id="tab-handover" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-2 transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+            <i class="fa-solid fa-file-signature text-sm"></i>
+            <span class="hidden sm:inline">3. Ficha KAM → Técnico</span>
+            <span class="sm:hidden">3. Ficha</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Search Bar -->
+  <div class="md:hidden bg-slate-900 border-b border-slate-800 px-4 py-2">
+    <div class="relative">
+      <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+      <input type="text" id="globalSearchMobile" placeholder="Buscar en el dashboard..." 
+             class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-1.5 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500">
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- SECTION 1: ICP & MATRIZ DE DECISION MAKERS -->
+    <section id="sec-icp" class="tab-content block space-y-6">
+      
+      <!-- Top Overview Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-4 relative z-10">
+          <div>
+            <div class="flex items-center space-x-2 text-brand-400 text-xs font-semibold uppercase tracking-widest mb-1">
+              <span>Ficha Estratégica H2 2026</span>
+              <span>•</span>
+              <span>CODIN® Suite (SLM + RM)</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white">Perfil de Cliente Ideal (ICP) & Matriz KDM</h1>
+            <p class="text-slate-400 text-sm mt-1 max-w-3xl">
+              Uso sugerido: guía de speech por interlocutor para comerciales y técnicos antes de una reunión o demo. Visualiza las preocupaciones clave de cada Key Decision Maker y su solución directa con Minexus.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <span class="bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-300 flex items-center gap-2">
+              <i class="fa-solid fa-users text-brand-400"></i> 17 Clientes Plataforma
+            </span>
+            <span class="bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-300 flex items-center gap-2">
+              <i class="fa-solid fa-briefcase text-emerald-400"></i> 12 Consultoría
+            </span>
+            <span class="bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-300 flex items-center gap-2">
+              <i class="fa-solid fa-layer-group text-cyan-400"></i> 55 Servicios Totales
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ICP Summary Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-panel p-5 rounded-xl space-y-3 border-l-4 border-l-brand-500">
+          <div class="flex items-center justify-between text-brand-400">
+            <span class="text-xs font-bold uppercase tracking-wider">1. Países Target</span>
+            <i class="fa-solid fa-earth-americas text-base"></i>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div>
+              <span class="text-emerald-400 font-bold uppercase block text-[10px]">Foco Principal</span>
+              <p class="text-slate-200 font-medium text-sm">Argentina, Chile</p>
+            </div>
+            <div>
+              <span class="text-cyan-400 font-bold uppercase block text-[10px]">Prueba de Concepto Regional</span>
+              <p class="text-slate-300">Perú <span class="text-slate-400">(cliente minero de referencia)</span></p>
+            </div>
+            <div>
+              <span class="text-amber-400 font-bold uppercase block text-[10px]">Apertura Futura (H2 2027)</span>
+              <p class="text-slate-400">México, Canadá <span class="text-slate-500">(materiales bilingües ES/EN)</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-xl space-y-3 border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between text-emerald-400">
+            <span class="text-xs font-bold uppercase tracking-wider">2. Industria Focus</span>
+            <i class="fa-solid fa-industry text-base"></i>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div>
+              <span class="text-slate-300 font-semibold block">Argentina:</span>
+              <p class="text-slate-400">Minería (litio, oro/cobre, plata/zinc), Energía, Ingeniería/Construcción, Gas & Petróleo, Alimentos y Químicas.</p>
+            </div>
+            <div>
+              <span class="text-slate-300 font-semibold block">Chile:</span>
+              <p class="text-slate-400">Energía renovable, Grandes corporativos mineros multinacionales, Alimenticias multinacionales.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-xl space-y-3 border-l-4 border-l-cyan-500">
+          <div class="flex items-center justify-between text-cyan-400">
+            <span class="text-xs font-bold uppercase tracking-wider">3. Score Empresa (5 Criterios)</span>
+            <i class="fa-solid fa-sliders text-base"></i>
+          </div>
+          <ul class="text-xs space-y-1.5 text-slate-300 list-disc list-inside">
+            <li><strong class="text-white">+200 terceros:</strong> Proveedores/contratistas en sitio.</li>
+            <li><strong class="text-white">Sitio Remoto:</strong> Minas, plantas, campamentos.</li>
+            <li><strong class="text-white">Madurez ERP:</strong> Opera sobre SAP u otro ERP.</li>
+            <li><strong class="text-white">Compliance:</strong> Listas restrictivas, PEP, HSEQ.</li>
+            <li><strong class="text-white">Decisión &lt; 12 meses:</strong> Presupuesto real.</li>
+          </ul>
+        </div>
+
+        <div class="glass-panel p-5 rounded-xl space-y-3 border-l-4 border-l-rose-500">
+          <div class="flex items-center justify-between text-rose-400">
+            <span class="text-xs font-bold uppercase tracking-wider">4. Criterios de Exclusión</span>
+            <i class="fa-solid fa-ban text-base"></i>
+          </div>
+          <div class="space-y-2 text-xs">
+            <p class="text-slate-300">
+              <i class="fa-solid fa-circle-xmark text-rose-400 mr-1"></i> PYMES locales sin facturación internacional (Chile)
+            </p>
+            <p class="text-slate-300">
+              <i class="fa-solid fa-circle-xmark text-rose-400 mr-1"></i> Gobierno
+            </p>
+            <p class="text-slate-300">
+              <i class="fa-solid fa-circle-xmark text-rose-400 mr-1"></i> Educación pública
+            </p>
+            <p class="text-[11px] text-slate-400 italic pt-1 border-t border-slate-800">
+              Base actual: 20 clientes. Mayoría ganada por boca en boca.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- KDM Decision Maker Filter Bar -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-slate-800">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-users-gear text-brand-400"></i> Matriz de Preocupaciones y Soluciones por KDM
+          </h2>
+          <p class="text-xs text-slate-400">Haz clic en un rol para filtrar sus dolores y el módulo Minexus correspondiente.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5" id="role-filters">
+          <button onclick="filterRole('all')" class="role-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white shadow-md">
+            Todos
+          </button>
+          <button onclick="filterRole('Compras')" class="role-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+            Compras
+          </button>
+          <button onclick="filterRole('Operaciones')" class="role-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+            Operaciones
+          </button>
+          <button onclick="filterRole('Supply Chain')" class="role-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+            Supply Chain
+          </button>
+          <button onclick="filterRole('HSEQ')" class="role-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+            HSEQ
+          </button>
+          <button onclick="filterRole('Sistemas')" class="role-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+            CIO / Sistemas
+          </button>
+          <button onclick="filterRole('Finanzas')" class="role-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+            CFO / Finanzas
+          </button>
+        </div>
+      </div>
+
+      <!-- KDM Matrix Table -->
+      <div class="glass-panel rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse" id="kdmTable">
+            <thead>
+              <tr class="bg-slate-900/90 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800">
+                <th class="py-3.5 px-4 w-1/4">Key Decision Maker</th>
+                <th class="py-3.5 px-4 w-2/5">Preocupación del Rol (Dolor)</th>
+                <th class="py-3.5 px-4 w-1/3">Solución Minexus</th>
+                <th class="py-3.5 px-3 text-center w-16">Acción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 text-sm" id="kdmTableBody">
+              <!-- Rendered via JS dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- SECTION 2: PLAN DE CONTENIDOS -->
+    <section id="sec-content" class="tab-content hidden space-y-6">
+      
+      <!-- Top Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+          <div>
+            <div class="flex items-center space-x-2 text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-1">
+              <span>Growth & Content Strategy</span>
+              <span>•</span>
+              <span>12 Semanas · LinkedIn</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white">Plan de Contenidos Estratégico</h1>
+            <p class="text-slate-400 text-sm mt-1 max-w-3xl">
+              2 perfiles (Argentina + Foco Chile). 1 publicación semanal por perfil. Posicionamiento técnico para compradores de ciclo largo (hasta 12 meses).
+            </p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-xl text-xs font-bold">
+              <i class="fa-brands fa-linkedin text-indigo-400 mr-1"></i> 2 Perfiles LinkedIn
+            </span>
+            <span class="bg-brand-500/20 text-brand-300 border border-brand-500/30 px-3 py-1.5 rounded-xl text-xs font-bold">
+              <i class="fa-solid fa-clock text-brand-400 mr-1"></i> 12 Semanas
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategy Pillars Summary Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="glass-panel p-5 rounded-2xl border-t-4 border-t-brand-500 space-y-3 relative">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase text-brand-400 tracking-wider">Pilar 1 · Expertise</span>
+            <span class="text-2xl font-black text-brand-400">50%</span>
+          </div>
+          <div class="text-xs text-slate-400">6 de 12 posts por perfil</div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            <strong>Educar / Autoridad:</strong> Compradores técnicos (HSEQ, Supply Chain, CIO) investigan antes de hablar con ventas. Construye autoridad sin fricción comercial.
+          </p>
+          <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div class="bg-brand-500 h-full w-[50%]"></div>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl border-t-4 border-t-cyan-500 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase text-cyan-400 tracking-wider">Pilar 2 · Producto</span>
+            <span class="text-2xl font-black text-cyan-400">30%</span>
+          </div>
+          <div class="text-xs text-slate-400">4 de 12 posts por perfil</div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            <strong>Casos de Uso / Diferenciadores:</strong> Convive con la educación. Muestra el producto resolviendo un dolor concreto de un rol específico.
+          </p>
+          <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div class="bg-cyan-500 h-full w-[30%]"></div>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl border-t-4 border-t-emerald-500 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase text-emerald-400 tracking-wider">Pilar 3 · Identidad</span>
+            <span class="text-2xl font-black text-emerald-400">20%</span>
+          </div>
+          <div class="text-xs text-slate-400">2 de 12 posts por perfil</div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            <strong>Marca / Cultura / Founders:</strong> Cartera ganada por boca en boca. En minería y energía, la marca-persona reduce el riesgo percibido.
+          </p>
+          <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div class="bg-emerald-500 h-full w-[20%]"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copies Redactados Cards -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square text-cyan-400"></i> Ejemplos de Grilla & Copies Redactados
+          </h2>
+          <span class="text-xs text-slate-400">3 Ejemplos Modelo Listos para Publicar</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Copy 1 -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md">
+                  Ejemplo 1 · Identidad
+                </span>
+                <span class="text-slate-400 text-xs"><i class="fa-regular fa-calendar mr-1"></i>Semana 1 · Lunes</span>
+              </div>
+              <h3 class="font-bold text-slate-100 text-base mb-1">Trayectoria y prueba social tier-1</h3>
+              <p class="text-xs text-slate-400 mb-3"><strong>Perfil:</strong> Argentina (corporativo) | <strong>Formato:</strong> Carrusel</p>
+
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-xs text-slate-300 font-mono space-y-2 whitespace-pre-line">
+                <p id="copy-text-1">Hace 10 años, ordenar el ingreso de contratistas a una mina se resolvía con una planilla de Excel y mucha paciencia.
+
+Hoy, la plataforma CODIN® de Minexus gestiona en tiempo real el acceso, la documentación, el transporte y el patrimonio de más de 20 operaciones en Argentina, Chile y Perú — integrada en tiempo real con los ERPs que esas empresas ya usan.
+
+No lo hicimos solos: lo construimos junto a mineras, energéticas e ingenierías que confiaron en un equipo que no desaparece después de la firma del contrato.
+
+Como dice Julián Rojas, nuestro CIO y co-founder: “gestionamos recursos en sitios remotos mediante tecnología de última generación: microservicios, blockchain e IA” — pero siempre con un equipo humano acompañando la implementación.
+
+¿Qué proceso de tu operación te gustaría ver más ordenado? Contánoslo en los comentarios.</p>
+              </div>
+            </div>
+
+            <button onclick="copyContent('copy-text-1')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2">
+              <i class="fa-regular fa-copy"></i> Copiar Copy Redactado
+            </button>
+          </div>
+
+          <!-- Copy 2 -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md">
+                  Ejemplo 2 · Producto
+                </span>
+                <span class="text-slate-400 text-xs"><i class="fa-regular fa-calendar mr-1"></i>Semana 1 · Miércoles</span>
+              </div>
+              <h3 class="font-bold text-slate-100 text-base mb-1">Access Control + ID Credentials</h3>
+              <p class="text-xs text-slate-400 mb-3"><strong>Perfil:</strong> Foco en Chile | <strong>Formato:</strong> Carrusel UI</p>
+
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-xs text-slate-300 font-mono space-y-2 whitespace-pre-line">
+                <p id="copy-text-2">200 contratistas, 3 empresas distintas, 1 sola fila en la entrada. Así se ve todavía el ingreso a sitio en muchas operaciones mineras y energéticas.
+
+Con CODIN® – Access Control + ID Credentials, cada persona valida su identidad, su documentación vigente y su autorización en segundos, no en minutos. Nadie que no debería estar en sitio, entra.
+
+El resultado no es solo velocidad: es visibilidad en tiempo real de quién está físicamente en la operación en cualquier momento del día.
+
+Si tu equipo todavía valida accesos con planilla o papel, escribínos “ACCESO” y te mostramos cómo se ve en tu operación.</p>
+              </div>
+            </div>
+
+            <button onclick="copyContent('copy-text-2')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2">
+              <i class="fa-regular fa-copy"></i> Copiar Copy Redactado
+            </button>
+          </div>
+
+          <!-- Copy 3 -->
+          <div class="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="bg-brand-500/20 text-brand-300 border border-brand-500/30 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md">
+                  Ejemplo 3 · Expertise
+                </span>
+                <span class="text-slate-400 text-xs"><i class="fa-regular fa-calendar mr-1"></i>Semana 1 · Viernes</span>
+              </div>
+              <h3 class="font-bold text-slate-100 text-base mb-1">Normativa Compliance & Debida Diligencia</h3>
+              <p class="text-xs text-slate-400 mb-3"><strong>Perfil:</strong> Argentina (corporativo) | <strong>Formato:</strong> Texto Largo Nativo</p>
+
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-xs text-slate-300 font-mono space-y-2 whitespace-pre-line">
+                <p id="copy-text-3">¿Sabés si alguno de tus proveedores activos tiene un PEP (Persona Expuesta Políticamente) sin declarar?
+
+En minería y energía, la exposición a este riesgo no es teórica: cada contratista que ingresa a sitio, cada proveedor que factura, es una potencial exposición legal y reputacional si su documentación no está verificada.
+
+El problema no es la falta de voluntad de las áreas de Compras o HSEQ — es que la verificación manual de decenas o cientos de proveedores es, en la práctica, imposible de sostener a tiempo.
+
+Tres preguntas que toda área de Compras debería poder responder hoy: ¿qué % de tu base de proveedores tiene documentación vencida ahora mismo? ¿Cuánto tarda tu equipo en detectarlo? ¿Quién es responsable si no se detecta a tiempo?
+
+¿Cómo auditás hoy a tus proveedores? Contanos tu proceso en los comentarios.</p>
+              </div>
+            </div>
+
+            <button onclick="copyContent('copy-text-3')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2">
+              <i class="fa-regular fa-copy"></i> Copiar Copy Redactado
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- SECTION 3: FICHA DE TRASPASO KAM → TÉCNICO -->
+    <section id="sec-handover" class="tab-content hidden space-y-6">
+      
+      <!-- Top Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+          <div>
+            <div class="flex items-center space-x-2 text-emerald-400 text-xs font-semibold uppercase tracking-widest mb-1">
+              <span>Entregable 3 · Formulario Interactivo</span>
+              <span>•</span>
+              <span>Sales Enablement</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white">Ficha de Traspaso KAM → Técnico</h1>
+            <p class="text-slate-400 text-sm mt-1 max-w-3xl">
+              Completar después del discovery call y enviar al técnico antes de agendar la demo.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="loadHandoverSample()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Cargar Ejemplo Demo
+            </button>
+            <button onclick="resetHandoverForm()" class="bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1">
+              <i class="fa-solid fa-rotate-left"></i> Limpiar
+            </button>
+            <button onclick="exportHandoverText()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-copy"></i> Copiar Ficha Lista
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Handover Form Body -->
+      <form id="handoverForm" onsubmit="event.preventDefault(); exportHandoverText();" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- 1. Perfil -->
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center space-x-2 text-brand-400 border-b border-slate-800 pb-3">
+            <span class="bg-brand-500/20 text-brand-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">1</span>
+            <h3 class="font-bold text-white text-base">Perfil de la Cuenta</h3>
+          </div>
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block text-slate-300 font-medium mb-1">Empresa / industria / país:</label>
+              <input type="text" id="ho_empresa" placeholder="Ej. Minera Los Andes / Gold & Copper / Chile" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-medium mb-1">Volumen de proveedores o contratistas activos:</label>
+              <input type="text" id="ho_volumen" placeholder="Ej. 350 contratistas activos en sitio" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-slate-300 font-medium mb-1">¿Sitio remoto / campamento?:</label>
+                <input type="text" id="ho_remoto" placeholder="Sí, campamento a 3.800 msnm" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+              </div>
+              <div>
+                <label class="block text-slate-300 font-medium mb-1">ERP actual (SAP u otro):</label>
+                <input type="text" id="ho_erp" placeholder="SAP S/4HANA" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Diagnóstico -->
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center space-x-2 text-cyan-400 border-b border-slate-800 pb-3">
+            <span class="bg-cyan-500/20 text-cyan-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">2</span>
+            <h3 class="font-bold text-white text-base">Diagnóstico Comercial</h3>
+          </div>
+          <div class="text-xs space-y-2">
+            <label class="block text-slate-300 font-medium">Dolor textual del cliente (en sus palabras):</label>
+            <textarea id="ho_dolor" rows="4" placeholder="Ej: 'Tenemos colas de 2 horas en el cambio de turno...'" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500"></textarea>
+          </div>
+        </div>
+
+        <!-- 3. Módulos -->
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4 lg:col-span-2">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2 text-emerald-400">
+              <span class="bg-emerald-500/20 text-emerald-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">3</span>
+              <h3 class="font-bold text-white text-base">Módulo a Priorizar en Demo (Máximo 2)</h3>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start space-x-3 p-3 bg-slate-900/80 rounded-xl border border-slate-800 hover:border-brand-500/50 cursor-pointer transition">
+              <input type="checkbox" name="module_select" value="SLM · Supplier Onboarding" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+              <div>
+                <span class="font-bold text-slate-200 block">SLM · Supplier Onboarding</span>
+                <span class="text-slate-400">Proveedores desorganizados, sin visibilidad</span>
+              </div>
+            </label>
+            <label class="flex items-start space-x-3 p-3 bg-slate-900/80 rounded-xl border border-slate-800 hover:border-brand-500/50 cursor-pointer transition">
+              <input type="checkbox" name="module_select" value="RM · Document Control" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+              <div>
+                <span class="font-bold text-slate-200 block">RM · Document Control</span>
+                <span class="text-slate-400">Riesgo legal por documentación vencida</span>
+              </div>
+            </label>
+            <label class="flex items-start space-x-3 p-3 bg-slate-900/80 rounded-xl border border-slate-800 hover:border-brand-500/50 cursor-pointer transition">
+              <input type="checkbox" name="module_select" value="RM · Access Control + ID Credentials" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+              <div>
+                <span class="font-bold text-slate-200 block">RM · Access Control + ID Credentials</span>
+                <span class="text-slate-400">Filas, demoras o riesgo en ingreso a sitio</span>
+              </div>
+            </label>
+            <label class="flex items-start space-x-3 p-3 bg-slate-900/80 rounded-xl border border-slate-800 hover:border-brand-500/50 cursor-pointer transition">
+              <input type="checkbox" name="module_select" value="RM · Transport Access / Booking" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+              <div>
+                <span class="font-bold text-slate-200 block">RM · Transport Access / Booking</span>
+                <span class="text-slate-400">Transporte de personal desordenado</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 4. Mapa de decisión -->
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center space-x-2 text-amber-400 border-b border-slate-800 pb-3">
+            <span class="bg-amber-500/20 text-amber-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">4</span>
+            <h3 class="font-bold text-white text-base">Mapa de Decisión</h3>
+          </div>
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block text-slate-300 font-medium mb-1">Asistentes a la demo:</label>
+              <input type="text" id="ho_asistentes" placeholder="Ej. Carlos Gutiérrez (Site Manager)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-medium mb-1">¿Quién decide / evalúa?:</label>
+              <input type="text" id="ho_decisores" placeholder="Ej. Decide Gerente Operaciones; Evalúa CIO" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Objetivo -->
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center space-x-2 text-rose-400 border-b border-slate-800 pb-3">
+            <span class="bg-rose-500/20 text-rose-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">5</span>
+            <h3 class="font-bold text-white text-base">Objetivo de Negocio</h3>
+          </div>
+          <div class="text-xs space-y-2">
+            <label class="block text-slate-300 font-medium">Resultado que busca:</label>
+            <input type="text" id="ho_objetivo" placeholder="Ej. Reducir colas a < 5 min" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500">
+          </div>
+        </div>
+
+        <!-- 6. Status Quo -->
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center space-x-2 text-indigo-400 border-b border-slate-800 pb-3">
+            <span class="bg-indigo-500/20 text-indigo-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">6</span>
+            <h3 class="font-bold text-white text-base">Status Quo</h3>
+          </div>
+          <div class="text-xs space-y-2">
+            <label class="block text-slate-300 font-medium">Qué usan hoy:</label>
+            <input type="text" id="ho_statusquo" placeholder="Ej. Excel y papel" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+
+        <!-- 7. Logística -->
+        <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center space-x-2 text-purple-400 border-b border-slate-800 pb-3">
+            <span class="bg-purple-500/20 text-purple-300 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">7</span>
+            <h3 class="font-bold text-white text-base">Logística de Demo</h3>
+          </div>
+          <div class="text-xs space-y-2">
+            <label class="block text-slate-300 font-medium">Duración / Idioma:</label>
+            <input type="text" id="ho_logistica" placeholder="Ej. 30 min / Español" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+        </div>
+
+      </form>
+
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-800 bg-slate-950 py-4 text-center text-xs text-slate-500 mt-auto">
+    MINEXUS · Sales Enablement Dashboard & Content Strategy H2 2026
+  </footer>
+
+  <script>
+    // Embedded KDM Dataset
+    const kdmData = [
+      { role: "Compras", title: "Gerente / Director de Compras y Abastecimiento", pain: "Base de proveedores dispersa en Excel o correos, sin trazabilidad centralizada", solution: "SLM · Supplier Onboarding — digitaliza y centraliza el ciclo de vida del proveedor" },
+      { role: "Compras", title: "Gerente / Director de Compras y Abastecimiento", pain: "Proveedores operando sin documentación o certificaciones vigentes", solution: "SLM · Qualification & Compliance — verificación automática de documentos, listas restrictivas y PEP" },
+      { role: "Compras", title: "Gerente / Director de Compras y Abastecimiento", pain: "Procesos de cotización y licitación manuales, lentos y sin comparabilidad", solution: "SLM · Sourcing & Tenders" },
+      { role: "Operaciones", title: "Gerente de Operaciones / Site Manager", pain: "Ingreso de contratistas a sitio lento, con filas y riesgo de personal no autorizado", solution: "RM · Access Control + ID Credentials" },
+      { role: "Operaciones", title: "Gerente de Operaciones / Site Manager", pain: "Transporte de personal a sitio desorganizado, sin visibilidad de ocupación", solution: "RM · Transport Access / Transport Booking" },
+      { role: "Supply Chain", title: "Gerente de Supply Chain", pain: "Falta de integración entre la gestión de terceros y el ERP central", solution: "Integración en tiempo real con SAP (arquitectura de microservicios)" },
+      { role: "HSEQ", title: "Gerente HSEQ", pain: "Riesgo de multas por documentación de seguridad de contratistas vencida", solution: "RM · Document Control con alertas de vencimiento" },
+      { role: "Sistemas", title: "CIO / Gerente de Sistemas", pain: "Necesidad de integrar una nueva plataforma sin romper el ERP existente", solution: "Integración vía microservicios y API Gateway con SAP" },
+      { role: "Finanzas", title: "CFO / Gerente Administrativo", pain: "Falta de visibilidad del gasto real en proveedores y contratistas", solution: "Reporting consolidado de la plataforma SLM" }
+    ];
+
+    let currentRoleFilter = 'all';
+    let searchQuery = '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderKDMTable();
+
+      const gSearch = document.getElementById('globalSearch');
+      const mSearch = document.getElementById('globalSearchMobile');
+
+      if (gSearch) {
+        gSearch.addEventListener('input', (e) => {
+          searchQuery = e.target.value.toLowerCase();
+          renderKDMTable();
+        });
+      }
+      if (mSearch) {
+        mSearch.addEventListener('input', (e) => {
+          searchQuery = e.target.value.toLowerCase();
+          renderKDMTable();
+        });
+      }
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-brand-600', 'text-white', 'shadow-lg', 'shadow-brand-600/20');
+        btn.classList.add('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-800');
+      });
+
+      const selectedTab = document.getElementById(`sec-${tabId}`);
+      const selectedBtn = document.getElementById(`tab-${tabId}`);
+
+      if (selectedTab) selectedTab.classList.remove('hidden');
+      if (selectedBtn) {
+        selectedBtn.classList.add('bg-brand-600', 'text-white', 'shadow-lg', 'shadow-brand-600/20');
+        selectedBtn.classList.remove('text-slate-400', 'hover:text-slate-200', 'hover:bg-slate-800');
+      }
+    }
+
+    function filterRole(role) {
+      currentRoleFilter = role;
+      document.querySelectorAll('.role-btn').forEach(btn => {
+        btn.classList.remove('bg-brand-600', 'text-white', 'shadow-md');
+        btn.classList.add('bg-slate-800', 'text-slate-300', 'hover:bg-slate-700');
+      });
+
+      event.currentTarget.classList.remove('bg-slate-800', 'text-slate-300', 'hover:bg-slate-700');
+      event.currentTarget.classList.add('bg-brand-600', 'text-white', 'shadow-md');
+
+      renderKDMTable();
+    }
+
+    function renderKDMTable() {
+      const tbody = document.getElementById('kdmTableBody');
+      if (!tbody) return;
+
+      const filtered = kdmData.filter(item => {
+        const matchesRole = (currentRoleFilter === 'all') || (item.role === currentRoleFilter);
+        const matchesSearch = !searchQuery || 
+          item.title.toLowerCase().includes(searchQuery) ||
+          item.pain.toLowerCase().includes(searchQuery) ||
+          item.solution.toLowerCase().includes(searchQuery);
+        return matchesRole && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-8 text-center text-slate-500">
+              <i class="fa-solid fa-magnifying-glass text-2xl mb-2 block"></i>
+              No se encontraron coincidencias.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((item) => {
+        let roleBadgeClass = "bg-brand-500/10 text-brand-400 border-brand-500/20";
+        if(item.role === 'Operaciones') roleBadgeClass = "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
+        if(item.role === 'Supply Chain') roleBadgeClass = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+        if(item.role === 'HSEQ') roleBadgeClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+        if(item.role === 'Sistemas') roleBadgeClass = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+        if(item.role === 'Finanzas') roleBadgeClass = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+
+        const textToCopy = `Key Decision Maker: ${item.title}\nPreocupación: ${item.pain}\nSolución Minexus: ${item.solution}`;
+
+        return `
+          <tr class="hover:bg-slate-900/60 transition-colors group">
+            <td class="py-3.5 px-4 font-semibold text-slate-200 border-b border-slate-800/60">
+              <span class="inline-block border px-2 py-0.5 rounded text-[11px] font-bold uppercase mb-1 ${roleBadgeClass}">
+                ${item.role}
+              </span>
+              <div class="text-xs text-slate-300 font-medium">${item.title}</div>
+            </td>
+            <td class="py-3.5 px-4 text-slate-300 border-b border-slate-800/60">
+              ${highlightSearch(item.pain, searchQuery)}
+            </td>
+            <td class="py-3.5 px-4 font-medium text-brand-300 border-b border-slate-800/60">
+              <span class="inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-check-circle text-brand-400 text-xs"></i>
+                ${highlightSearch(item.solution, searchQuery)}
+              </span>
+            </td>
+            <td class="py-3.5 px-3 text-center border-b border-slate-800/60">
+              <button onclick="copyToClipboard('${escapeQuotes(textToCopy)}')" 
+                      title="Copiar speech para reunión" 
+                      class="text-slate-500 hover:text-brand-400 p-1.5 rounded-lg hover:bg-slate-800 transition">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function highlightSearch(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<mark class="bg-amber-500/30 text-amber-200 px-1 rounded">$1</mark>');
+    }
+
+    function escapeQuotes(str) {
+      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+    }
+
+    function copyContent(elementId) {
+      const el = document.getElementById(elementId);
+      if (el) copyToClipboard(el.innerText);
+    }
+
+    function copyToClipboard(text) {
+      const dummy = document.createElement("textarea");
+      document.body.appendChild(dummy);
+      dummy.value = text;
+      dummy.select();
+      document.execCommand("copy");
+      document.body.removeChild(dummy);
+
+      showToast("¡Texto copiado al portapapeles!");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      if (toast && toastMsg) {
+        toastMsg.innerText = msg;
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+        setTimeout(() => {
+          toast.classList.remove('translate-y-0', 'opacity-100');
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 2500);
+      }
+    }
+
+    function loadHandoverSample() {
+      document.getElementById('ho_empresa').value = "Minera San Lorenzo / Minería Cobre / Chile";
+      document.getElementById('ho_volumen').value = "420 contratistas activos";
+      document.getElementById('ho_remoto').value = "Sí, sitio remoto a 3.200 msnm";
+      document.getElementById('ho_erp').value = "SAP S/4HANA";
+      document.getElementById('ho_dolor').value = "Largas filas en el cambio de turno y multas por documentación vencida.";
+      
+      const checkboxes = document.querySelectorAll('input[name="module_select"]');
+      checkboxes.forEach((cb, idx) => { cb.checked = (idx === 1 || idx === 2); });
+
+      document.getElementById('ho_asistentes').value = "Roberto Méndez (Site Manager)";
+      document.getElementById('ho_decisores').value = "Decide Roberto (Site Manager)";
+      document.getElementById('ho_objetivo').value = "Eliminar filas en acceso (< 5 seg)";
+      document.getElementById('ho_statusquo').value = "Planillas Excel compartidas";
+      document.getElementById('ho_logistica').value = "25 minutos / Español";
+
+      showToast("Ejemplo de Demo cargado con éxito");
+    }
+
+    function resetHandoverForm() {
+      document.getElementById('handoverForm').reset();
+      showToast("Formulario limpiado");
+    }
+
+    function exportHandoverText() {
+      const empresa = document.getElementById('ho_empresa').value || 'Sin especificar';
+      const dolor = document.getElementById('ho_dolor').value || 'Sin especificar';
+      const selectedModules = Array.from(document.querySelectorAll('input[name="module_select"]:checked'))
+                                   .map(cb => cb.value)
+                                   .join(', ') || 'Ninguno';
+
+      const formatted = `MINEXUS · FICHA DE TRASPASO KAM → TÉCNICO\nEmpresa: ${empresa}\nDolor: ${dolor}\nMódulos: ${selectedModules}`;
+      copyToClipboard(formatted);
+    }
+  </script>
+</body>
+</html>
